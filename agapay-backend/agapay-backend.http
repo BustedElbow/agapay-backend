@@ -1,0 +1,6 @@
+@agapay_backend_HostAddress = http://localhost:5211
+
+GET {{agapay_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
