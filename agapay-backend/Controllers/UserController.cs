@@ -1,5 +1,5 @@
 ﻿using agapay_backend.Data;
-using agapay_backend.Models;
+using agapay_backend.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +18,10 @@ namespace agapay_backend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return Ok(await _context.Users.ToListAsync());
         }
+
     }
 }
