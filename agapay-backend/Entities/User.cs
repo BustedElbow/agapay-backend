@@ -15,7 +15,7 @@ namespace agapay_backend.Entities
         public DateTime? RefreshTokenExpiryTime { get; set; }
 
         // Nav Props
-        public Patient? Patient { get; set; }
+        public ICollection<Patient> Patients { get; set; } = new List<Patient>();
         public PhysicalTherapist? PhysicalTherapist { get; set; }
     }
 }

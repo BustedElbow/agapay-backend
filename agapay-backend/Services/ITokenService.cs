@@ -1,4 +1,5 @@
 ﻿using agapay_backend.Entities;
+using System.Security.Claims;
 
 namespace agapay_backend.Services
 {
@@ -6,5 +7,6 @@ namespace agapay_backend.Services
     {
         string CreateAccessToken(User user, IEnumerable<string> roles);
         string CreateRefreshToken();
+        ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
     }
 }

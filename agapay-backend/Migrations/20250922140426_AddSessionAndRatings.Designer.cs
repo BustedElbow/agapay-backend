@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using agapay_backend.Data;
@@ -11,9 +12,11 @@ using agapay_backend.Data;
 namespace agapay_backend.Migrations
 {
     [DbContext(typeof(agapayDbContext))]
-    partial class agapayDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922140426_AddSessionAndRatings")]
+    partial class AddSessionAndRatings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

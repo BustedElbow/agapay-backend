@@ -5,16 +5,100 @@ using Microsoft.EntityFrameworkCore;
 
 namespace agapay_backend.Data
 {
-    public class agapayDbContext(DbContextOptions<agapayDbContext> options) : IdentityDbContext<User, Role, Guid> (options)
+    public class agapayDbContext(DbContextOptions<agapayDbContext> options) : IdentityDbContext<User, Role, Guid>(options)
     {
         public DbSet<Patient> Patients { get; set; }
         public DbSet<PhysicalTherapist> PhysicalTherapists { get; set; }
+        public DbSet<Specialization> Specializations { get; set; }
+        public DbSet<ConditionTreated> ConditionsTreated { get; set; }
+        public DbSet<ServiceArea> ServiceAreas { get; set; }
+        public DbSet<TherapistAvailability> TherapistAvailabilities { get; set; }
+        public DbSet<PatientPreferences> PatientPreferences { get; set; }
+
+        // New sets
+        public DbSet<TherapySession> TherapySessions { get; set; }
+        public DbSet<TherapistRating> TherapistRatings { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-           
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Patients)
+                .WithOne(p => p.User)
+                .HasForeignKey(p => p.UserId);
+
+            modelBuilder.Entity<PhysicalTherapist>()
+                .HasMany(pt => pt.Specializations)
+                .WithMany(s => s.PhysicalTherapists)
+                .UsingEntity(j => j.ToTable("PhysicalTherapistSpecializations"));
+
+            modelBuilder.Entity<PhysicalTherapist>()
+                .HasMany(pt => pt.ConditionsTreated)
+                .WithMany(ct => ct.PhysicalTherapists)
+                .UsingEntity(j => j.ToTable("PhysicalTherapistConditions"));
+
+            modelBuilder.Entity<PhysicalTherapist>()
+                .HasMany(pt => pt.ServiceAreas)
+                .WithMany(sa => sa.PhysicalTherapists)
+                .UsingEntity(j => j.ToTable("PhysicalTherapistServiceAreas"));
+
+            // Availability relationships
+            modelBuilder.Entity<TherapistAvailability>()
+                .HasOne(ta => ta.PhysicalTherapist)
+                .WithMany(pt => pt.Availabilities)
+                .HasForeignKey(ta => ta.PhysicalTherapistId);
+
+            modelBuilder.Entity<PatientPreferences>()
+                .HasOne(pp => pp.Patient)
+                .WithOne(p => p.Preferences)
+                .HasForeignKey<PatientPreferences>(pp => pp.PatientId);
+
+            // Sessions
+            modelBuilder.Entity<TherapySession>()
+                .HasOne(s => s.PhysicalTherapist)
+                .WithMany()
+                .HasForeignKey(s => s.PhysicalTherapistId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TherapySession>()
+                .HasOne(s => s.Patient)
+                .WithMany()
+                .HasForeignKey(s => s.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Ratings
+            modelBuilder.Entity<TherapistRating>()
+                .HasOne(r => r.PhysicalTherapist)
+                .WithMany()
+                .HasForeignKey(r => r.PhysicalTherapistId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TherapistRating>()
+                .HasOne(r => r.Patient)
+                .WithMany()
+                .HasForeignKey(r => r.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TherapistRating>()
+                .HasOne(r => r.Session)
+                .WithMany()
+                .HasForeignKey(r => r.SessionId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Chat
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Receiver)
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
