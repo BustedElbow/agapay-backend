@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using agapay_backend.Data;
@@ -11,9 +12,11 @@ using agapay_backend.Data;
 namespace agapay_backend.Migrations
 {
     [DbContext(typeof(agapayDbContext))]
-    partial class agapayDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250924033822_AddSessionStatusAndCancellation")]
+    partial class AddSessionStatusAndCancellation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,9 +218,6 @@ namespace agapay_backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Category")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.ToTable("ConditionsTreated");
@@ -357,9 +357,6 @@ namespace agapay_backend.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ProfilePictureUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("OtherConditionsTreated")
                         .HasColumnType("text");
 
                     b.Property<int>("RatingCount")

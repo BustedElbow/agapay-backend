@@ -1,4 +1,4 @@
-using agapay_backend.Data;
+ï»¿using agapay_backend.Data;
 using agapay_backend.Entities;
 using agapay_backend.Models;
 using agapay_backend.Services;
@@ -105,7 +105,7 @@ namespace agapay_backend.Controllers
                     return BadRequest("Physical therapist already verified");
                 }
 
-                // If therapist was rejected, allow resubmission — update license info and set to pending
+                // If therapist was rejected, allow resubmission â€” update license info and set to pending
                 therapist.LicenseNumber = licenseDto.LicenseNumber ?? therapist.LicenseNumber;
 
                 // If a new file was uploaded, update the stored object path; otherwise keep existing
@@ -155,7 +155,7 @@ namespace agapay_backend.Controllers
 
             if (therapist is null)
             {
-                // No submission yet — client can show role selection or submission screen
+                // No submission yet â€” client can show role selection or submission screen
                 return Ok(new
                 {
                     status = (string?)null,
@@ -202,37 +202,33 @@ namespace agapay_backend.Controllers
             });
         }
 
-        [HttpGet("patient/profiles")]
+        // Moved patient profiles list to PatientProfilesController at /api/patient/profiles
+
+        [HttpGet("patient/status")]
         [Authorize(Roles = "Patient")]
-        public async Task<IActionResult> GetPatientProfiles()
+        public async Task<IActionResult> GetPatientOnboardingStatus()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId is null) return Unauthorized();
 
-            var patients = await _context.Patients
-                .Where(p => p.UserId == Guid.Parse(userId) && p.IsActive)
-                .Select(p => new
-                {
-                    id = p.Id,
-                    firstName = p.FirstName,
-                    lastName = p.LastName,
-                    dateOfBirth = p.DateOfBirth,
-                    relationshipToUser = p.RelationshipToUser,
-                    isOnboardingComplete = p.IsOnboardingComplete,
-                    address = p.Address,
-                    latitude = p.Latitude,
-                    longitude = p.Longitude,
-                    locationDisplayName = p.LocationDisplayName,
-                    occupation = p.Occupation,
-                    activityLevel = p.ActivityLevel,
-                    medicalCondition = p.MedicalCondition,
-                    surgicalHistory = p.SurgicalHistory,
-                    medicationBeingTaken = p.MedicationBeingTaken,
-                    currentComplaints = p.CurrentComplaints
-                })
-                .ToListAsync();
+            var guid = Guid.Parse(userId);
 
-            return Ok(patients);
+            var hasCompleted = await _context.Patients
+                .AnyAsync(p => p.UserId == guid && p.IsOnboardingComplete);
+
+            var selfPatient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.UserId == guid && p.RelationshipToUser == "Self");
+
+            var patientsCount = await _context.Patients
+                .CountAsync(p => p.UserId == guid && p.IsActive);
+
+            return Ok(new
+            {
+                isPatientOnboardingComplete = hasCompleted,
+                hasSelfProfile = selfPatient != null,
+                selfPatientId = selfPatient?.Id,
+                patientsCount
+            });
         }
 
         [HttpPost("patient")]
@@ -244,6 +240,32 @@ namespace agapay_backend.Controllers
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound("User not found");
+
+            // Guard: If any patient profile for this account has already completed onboarding,
+            // do not allow running the patient onboarding flow again.
+            var alreadyCompleted = await _context.Patients
+                .AnyAsync(p => p.UserId == Guid.Parse(userId) && p.IsOnboardingComplete);
+
+            if (alreadyCompleted)
+            {
+                var profiles = await _context.Patients
+                    .Where(p => p.UserId == Guid.Parse(userId) && p.IsActive)
+                    .Select(p => new
+                    {
+                        id = p.Id,
+                        firstName = p.FirstName,
+                        lastName = p.LastName,
+                        relationshipToUser = p.RelationshipToUser,
+                        isOnboardingComplete = p.IsOnboardingComplete
+                    })
+                    .ToListAsync();
+
+                return Conflict(new
+                {
+                    message = "Patient onboarding already completed for this account. Add more profiles from the home screen.",
+                    profiles
+                });
+            }
 
             // Validate onboarding type
             if (onboardingDto.OnboardingType != "ForMyself" && onboardingDto.OnboardingType != "ForSomeoneElse")
@@ -417,6 +439,11 @@ namespace agapay_backend.Controllers
             }
 
             therapist.YearsOfExperience = onboardingDto.YearsOfExperience;
+            therapist.OtherConditionsTreated = onboardingDto.OtherConditions;
+            if (onboardingDto.FeePerSession.HasValue)
+            {
+                therapist.FeePerSession = onboardingDto.FeePerSession;
+            }
 
             therapist.Specializations.Clear();
             therapist.ConditionsTreated.Clear();
@@ -484,6 +511,24 @@ namespace agapay_backend.Controllers
                 .ToListAsync();
 
             return Ok(conditions);
+        }
+
+        [HttpGet("conditions-grouped")]
+        public async Task<IActionResult> GetConditionsGrouped()
+        {
+            var conditions = await _context.ConditionsTreated
+                .Select(c => new { c.Id, c.Name, c.Category })
+                .ToListAsync();
+
+            var grouped = conditions
+                .GroupBy(c => c.Category)
+                .Select(g => new
+                {
+                    category = g.Key.ToString(),
+                    items = g.Select(x => new { x.Id, x.Name })
+                });
+
+            return Ok(grouped);
         }
 
         [HttpGet("service-areas")]

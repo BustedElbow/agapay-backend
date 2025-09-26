@@ -33,6 +33,9 @@ namespace agapay_backend.Entities
         public ICollection<TherapistAvailability> Availabilities { get; set; } = new List<TherapistAvailability>();
         public bool IsOnboardingComplete { get; set; }
 
+        // Free-text: additional conditions not covered by predefined list
+        public string? OtherConditionsTreated { get; set; }
+
         // Rating aggregates (denormalized for fast reads)
         // AverageRating is null when no ratings exist
         public double? AverageRating { get; set; }

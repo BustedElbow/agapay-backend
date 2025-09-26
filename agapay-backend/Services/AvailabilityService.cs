@@ -71,17 +71,63 @@ namespace agapay_backend.Services
         {
             try
             {
-                // Remove existing availability
                 var existingAvailability = await _context.TherapistAvailabilities
                     .Where(ta => ta.PhysicalTherapistId == therapistId)
                     .ToListAsync();
 
-                _context.TherapistAvailabilities.RemoveRange(existingAvailability);
+                if (availabilities == null || availabilities.Count == 0)
+                {
+                    if (existingAvailability.Count == 0)
+                    {
+                        return true;
+                    }
 
-                // Add new availability
+                    _context.TherapistAvailabilities.RemoveRange(existingAvailability);
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+
                 foreach (var availability in availabilities)
                 {
-                    _context.TherapistAvailabilities.Add(new TherapistAvailability
+                    if (availability.EndTime <= availability.StartTime)
+                        throw new ArgumentException("Availability end time must be after the start time.");
+
+                    var identicalSlot = existingAvailability.FirstOrDefault(ta =>
+                        ta.DayOfWeek == availability.DayOfWeek &&
+                        ta.StartTime == availability.StartTime &&
+                        ta.EndTime == availability.EndTime);
+
+                    if (identicalSlot != null)
+                    {
+                        if (!availability.IsAvailable)
+                        {
+                            _context.TherapistAvailabilities.Remove(identicalSlot);
+                            existingAvailability.Remove(identicalSlot);
+                        }
+                        else
+                        {
+                            identicalSlot.IsAvailable = availability.IsAvailable;
+                            identicalSlot.Notes = availability.Notes;
+                        }
+
+                        continue;
+                    }
+
+                    if (!availability.IsAvailable)
+                    {
+                        // Request asked to disable a slot that does not exist; ignore gracefully.
+                        continue;
+                    }
+
+                    var overlaps = existingAvailability.Any(ta =>
+                        ta.IsAvailable &&
+                        ta.DayOfWeek == availability.DayOfWeek &&
+                        DoTimesOverlap(ta.StartTime, ta.EndTime, availability.StartTime, availability.EndTime));
+
+                    if (overlaps)
+                        throw new InvalidOperationException("New availability block overlaps with an existing block for the same day.");
+
+                    var newSlot = new TherapistAvailability
                     {
                         PhysicalTherapistId = therapistId,
                         DayOfWeek = availability.DayOfWeek,
@@ -89,7 +135,10 @@ namespace agapay_backend.Services
                         EndTime = availability.EndTime,
                         IsAvailable = availability.IsAvailable,
                         Notes = availability.Notes
-                    });
+                    };
+
+                    _context.TherapistAvailabilities.Add(newSlot);
+                    existingAvailability.Add(newSlot);
                 }
 
                 await _context.SaveChangesAsync();

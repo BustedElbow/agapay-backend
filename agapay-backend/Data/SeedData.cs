@@ -8,6 +8,8 @@ namespace agapay_backend.Data
     {
         public static async Task Initialize(IServiceProvider serviceProvider)
         {
+            var env = serviceProvider.GetRequiredService<IHostEnvironment>();
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
             var context = serviceProvider.GetRequiredService<agapayDbContext>();
@@ -22,24 +24,28 @@ namespace agapay_backend.Data
                 }
             }
 
-            // Seed Admin User
-            if (await userManager.FindByEmailAsync("admin@example.com") == null)
+            // Seed Admin User (development by default; can be enabled in other envs with Seed:AdminUser=true)
+            var seedAdmin = env.IsDevelopment() || config.GetValue<bool>("Seed:AdminUser");
+            if (seedAdmin)
             {
-                var adminUser = new User
+                if (await userManager.FindByEmailAsync("admin@example.com") == null)
                 {
-                    UserName = "admin@example.com",
-                    Email = "admin@example.com",
-                    FirstName = "Admin",
-                    LastName = "User",
-                    EmailConfirmed = true,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                    var adminUser = new User
+                    {
+                        UserName = "admin@example.com",
+                        Email = "admin@example.com",
+                        FirstName = "Admin",
+                        LastName = "User",
+                        EmailConfirmed = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
 
-                var result = await userManager.CreateAsync(adminUser, "Password123!");
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    var result = await userManager.CreateAsync(adminUser, "Password123!");
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(adminUser, "Admin");
+                    }
                 }
             }
 
@@ -76,51 +82,59 @@ namespace agapay_backend.Data
         {
             if (!context.ConditionsTreated.Any())
             {
-                var conditions = new[]
+                var groupedConditions = new Dictionary<ConditionCategory, string[]>
                 {
-                    // Neurological Conditions
-                    "Stroke",
-                    "Spinal Cord Injury",
-                    "Traumatic Brain Injury",
-                    "Radiculopathy",
-                    "Sciatica",
-                    "Bell's Palsy",
-                    "Peripheral Nerve Injury",
-                    "Carpal Tunnel Syndrome",
-
-                    // Musculoskeletal Conditions
-                    "Frozen Shoulder/Adhesive Capsulitis",
-                    "Fracture",
-                    "Scoliosis",
-                    "Myofascial Pain Syndrome",
-                    "Low Back Pain",
-                    "Sprain/Strain",
-                    "Ligament Tears (ACL, PCL, MCL)",
-                    "Patellofemoral Pain Syndrome",
-                    "Plantar Fasciitis",
-
-                    // Pediatric Conditions
-                    "Global Developmental Delay",
-                    "Cerebral Palsy",
-                    "Spina Bifida",
-                    "Down Syndrome",
-
-                    // Geriatric Conditions
-                    "Arthritis",
-                    "Osteoarthritis",
-                    "Deconditioning and Generalized Weakness",
-                    "Gait and Balance Problems",
-                    "Parkinson's Disease"
+                    [ConditionCategory.Neurological] = new[]
+                    {
+                        "Stroke",
+                        "Spinal Cord Injury",
+                        "Traumatic Brain Injury",
+                        "Radiculopathy",
+                        "Sciatica",
+                        "Bell's Palsy",
+                        "Peripheral Nerve Injury",
+                        "Carpal Tunnel Syndrome"
+                    },
+                    [ConditionCategory.Musculoskeletal] = new[]
+                    {
+                        "Frozen Shoulder/Adhesive Capsulitis",
+                        "Fracture",
+                        "Scoliosis",
+                        "Myofascial Pain Syndrome",
+                        "Low Back Pain",
+                        "Sprain/Strain",
+                        "Ligament Tears (ACL, PCL, MCL)",
+                        "Patellofemoral Pain Syndrome",
+                        "Plantar Fasciitis"
+                    },
+                    [ConditionCategory.Pediatric] = new[]
+                    {
+                        "Global Developmental Delay",
+                        "Cerebral Palsy",
+                        "Spina Bifida",
+                        "Down Syndrome"
+                    },
+                    [ConditionCategory.Geriatric] = new[]
+                    {
+                        "Arthritis",
+                        "Osteoarthritis",
+                        "Deconditioning and Generalized Weakness",
+                        "Gait and Balance Problems",
+                        "Parkinson's Disease"
+                    },
+                    [ConditionCategory.Cardiopulmonary] = Array.Empty<string>()
                 };
 
-                foreach (var condition in conditions)
+                foreach (var kvp in groupedConditions)
                 {
-                    context.ConditionsTreated.Add(new ConditionTreated { Name = condition });
+                    foreach (var condition in kvp.Value)
+                    {
+                        context.ConditionsTreated.Add(new ConditionTreated { Name = condition, Category = kvp.Key });
+                    }
                 }
 
                 await context.SaveChangesAsync();
             }
-
         }
 
         private static async Task SeedServiceAreas(agapayDbContext context)

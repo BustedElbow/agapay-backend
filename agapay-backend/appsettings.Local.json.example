@@ -1,0 +1,13 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=agapay_db;Username=postgres;Password=YOUR_SECURE_PASSWORD"
+  },
+  "Jwt": {
+    "Key": "YOUR_LONG_RANDOM_SECRET"
+  },
+  "Supabase": {
+    "Url": "https://YOUR-PROJECT.supabase.co",
+    "ServiceRoleKey": "YOUR_SERVICE_ROLE_KEY",
+    "Bucket": "YOUR_BUCKET"
+  }
+}

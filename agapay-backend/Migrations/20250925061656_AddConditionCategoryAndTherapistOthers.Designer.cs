@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using agapay_backend.Data;
@@ -11,9 +12,11 @@ using agapay_backend.Data;
 namespace agapay_backend.Migrations
 {
     [DbContext(typeof(agapayDbContext))]
-    partial class agapayDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250925061656_AddConditionCategoryAndTherapistOthers")]
+    partial class AddConditionCategoryAndTherapistOthers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -211,12 +214,12 @@ namespace agapay_backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -356,10 +359,10 @@ namespace agapay_backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ProfilePictureUrl")
+                    b.Property<string>("OtherConditionsTreated")
                         .HasColumnType("text");
 
-                    b.Property<string>("OtherConditionsTreated")
+                    b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("text");
 
                     b.Property<int>("RatingCount")

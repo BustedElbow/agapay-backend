@@ -1,5 +1,6 @@
 ﻿using agapay_backend.Data;
 using agapay_backend.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +19,29 @@ namespace agapay_backend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetUsers()
         {
-            return Ok(await _context.Users.ToListAsync());
+            var users = await _context.Users
+                .AsNoTracking()
+                .Select(u => new
+                {
+                    u.Id,
+                    u.Email,
+                    u.UserName,
+                    u.FirstName,
+                    u.LastName,
+                    u.PhoneNumber,
+                    u.EmailConfirmed,
+                    u.LockoutEnabled,
+                    u.LockoutEnd,
+                    u.TwoFactorEnabled,
+                    u.CreatedAt,
+                    u.UpdatedAt
+                })
+                .ToListAsync();
+
+            return Ok(users);
         }
 
     }

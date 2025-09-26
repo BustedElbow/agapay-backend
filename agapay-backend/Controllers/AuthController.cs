@@ -234,8 +234,7 @@ namespace agapay_backend.Controllers
 
         private async Task<(bool patientComplete, bool therapistComplete)> GetOnboardingStatus(Guid userId)
         {
-            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
-            bool patientComplete = patient is not null && patient.IsOnboardingComplete;
+            var patientComplete = await _context.Patients.AnyAsync(p => p.UserId == userId && p.IsOnboardingComplete);
 
             var therapist = await _context.PhysicalTherapists.FirstOrDefaultAsync(pt => pt.UserId == userId);
             bool therapistComplete = therapist is not null && therapist.IsOnboardingComplete;

@@ -12,6 +12,10 @@ using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load optional local secrets file (ignored by git) to override any settings
+// This allows keeping sensitive values out of appsettings.json
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Add services to the container.
 
 builder.Services.AddSignalR();
@@ -101,6 +105,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapScalarApiReference();
     app.MapOpenApi();
+}
+else
+{
+    // Enforce HSTS in production for stronger transport security
+    app.UseHsts();
 }
 
 // Seed the database

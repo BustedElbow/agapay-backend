@@ -9,5 +9,8 @@ namespace agapay_backend.Models
         public List<int> SpecializationIds { get; set; } = new();
         public List<int> ConditionIds { get; set; } = new();
         public List<int> ServiceAreasIds { get; set; } = new();
+        public decimal? FeePerSession { get; set; }
+        // Optional free-text for conditions not in the list
+        public string? OtherConditions { get; set; }
     }
 }
