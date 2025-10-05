@@ -8,10 +8,10 @@
         public DateOnly? DateOfBirth { get; set; }
         public string? RelationshipToUser { get; set; }
         public string? Address { get; set; }
+        public string? Barangay { get; set; }
 
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        public string? LocationDisplayName { get; set; }
 
         public string? Occupation { get; set; }
         public string? MedicalCondition { get; set; }

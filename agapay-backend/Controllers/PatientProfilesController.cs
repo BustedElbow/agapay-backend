@@ -38,9 +38,9 @@ namespace agapay_backend.Controllers
                     relationshipToUser = p.RelationshipToUser,
                     isOnboardingComplete = p.IsOnboardingComplete,
                     address = p.Address,
+                    barangay = p.Barangay,
                     latitude = p.Latitude,
                     longitude = p.Longitude,
-                    locationDisplayName = p.LocationDisplayName,
                     occupation = p.Occupation,
                     activityLevel = p.ActivityLevel,
                     medicalCondition = p.MedicalCondition,
@@ -90,9 +90,9 @@ namespace agapay_backend.Controllers
                 DateOfBirth = dto.DateOfBirth!.Value,
                 RelationshipToUser = dto.RelationshipToUser!,
                 Address = dto.Address,
+                Barangay = dto.Barangay,
                 Latitude = dto.Latitude,
                 Longitude = dto.Longitude,
-                LocationDisplayName = dto.LocationDisplayName,
                 Occupation = dto.Occupation,
                 ActivityLevel = dto.ActivityLevel,
                 MedicalCondition = dto.MedicalCondition,
@@ -135,9 +135,9 @@ namespace agapay_backend.Controllers
                 dateOfBirth = p.DateOfBirth,
                 relationshipToUser = p.RelationshipToUser,
                 address = p.Address,
+                barangay = p.Barangay,
                 latitude = p.Latitude,
                 longitude = p.Longitude,
-                locationDisplayName = p.LocationDisplayName,
                 occupation = p.Occupation,
                 activityLevel = p.ActivityLevel,
                 medicalCondition = p.MedicalCondition,
@@ -164,9 +164,9 @@ namespace agapay_backend.Controllers
             if (dto.DateOfBirth is not null) p.DateOfBirth = dto.DateOfBirth.Value;
             if (!string.IsNullOrWhiteSpace(dto.RelationshipToUser)) p.RelationshipToUser = dto.RelationshipToUser!;
             if (!string.IsNullOrWhiteSpace(dto.Address)) p.Address = dto.Address!;
+            if (dto.Barangay is not null && dto.Barangay.Trim().Length > 0) p.Barangay = dto.Barangay!;
             if (dto.Latitude is not null) p.Latitude = dto.Latitude;
             if (dto.Longitude is not null) p.Longitude = dto.Longitude;
-            if (!string.IsNullOrWhiteSpace(dto.LocationDisplayName)) p.LocationDisplayName = dto.LocationDisplayName!;
             if (!string.IsNullOrWhiteSpace(dto.Occupation)) p.Occupation = dto.Occupation!;
             if (!string.IsNullOrWhiteSpace(dto.ActivityLevel)) p.ActivityLevel = dto.ActivityLevel!;
             if (!string.IsNullOrWhiteSpace(dto.MedicalCondition)) p.MedicalCondition = dto.MedicalCondition!;

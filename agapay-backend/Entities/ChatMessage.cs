@@ -1,10 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace agapay_backend.Entities
 {
     public class ChatMessage
     {
         public int Id { get; set; }
+
+        [ForeignKey("ConversationId")]
+        public int ConversationId { get; set; }
+        public Conversation Conversation { get; set; }
 
         // The user who sent the message
         [ForeignKey("SenderId")]

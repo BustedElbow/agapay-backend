@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 
 namespace agapay_backend.Controllers
@@ -334,9 +336,9 @@ namespace agapay_backend.Controllers
 
             // Update common onboarding fields for both scenarios
             patient.Address = onboardingDto.Address;
+            patient.Barangay = onboardingDto.Barangay;
             patient.Latitude = onboardingDto.Latitude;
             patient.Longitude = onboardingDto.Longitude;
-            patient.LocationDisplayName = onboardingDto.LocationDisplayName;
             patient.ActivityLevel = onboardingDto.ActivityLevel;
             patient.MedicalCondition = onboardingDto.MedicalCondition;
             patient.SurgicalHistory = onboardingDto.SurgicalHistory;
@@ -506,28 +508,14 @@ namespace agapay_backend.Controllers
         [HttpGet("conditions")]
         public async Task<IActionResult> GetConditions()
         {
-            var conditions = await _context.ConditionsTreated
-                .Select(c => new { c.Id, c.Name })
-                .ToListAsync();
-
-            return Ok(conditions);
+            var grouped = await BuildConditionGroupsAsync();
+            return Ok(grouped);
         }
 
         [HttpGet("conditions-grouped")]
         public async Task<IActionResult> GetConditionsGrouped()
         {
-            var conditions = await _context.ConditionsTreated
-                .Select(c => new { c.Id, c.Name, c.Category })
-                .ToListAsync();
-
-            var grouped = conditions
-                .GroupBy(c => c.Category)
-                .Select(g => new
-                {
-                    category = g.Key.ToString(),
-                    items = g.Select(x => new { x.Id, x.Name })
-                });
-
+            var grouped = await BuildConditionGroupsAsync();
             return Ok(grouped);
         }
 
@@ -539,6 +527,57 @@ namespace agapay_backend.Controllers
                 .ToListAsync();
 
             return Ok(serviceAreas);
+        }
+
+        private async Task<IReadOnlyCollection<ConditionGroupDto>> BuildConditionGroupsAsync()
+        {
+            var conditionSummaries = await _context.ConditionsTreated
+                .Select(c => new { c.Id, c.Name, c.Category })
+                .ToListAsync();
+
+            var groupedByCategory = conditionSummaries
+                .GroupBy(c => c.Category)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (IReadOnlyCollection<ConditionItemDto>)g
+                        .OrderBy(x => x.Name)
+                        .Select(x => new ConditionItemDto
+                        {
+                            Id = x.Id,
+                            Name = x.Name
+                        })
+                        .ToList());
+
+            var result = new List<ConditionGroupDto>();
+
+            foreach (var (category, label) in ConditionCategoryExtensions.OrderedCategories)
+            {
+                groupedByCategory.TryGetValue(category, out var items);
+
+                result.Add(new ConditionGroupDto
+                {
+                    Key = category.ToString(),
+                    Label = label,
+                    Items = items ?? System.Array.Empty<ConditionItemDto>()
+                });
+
+                if (items is not null)
+                {
+                    groupedByCategory.Remove(category);
+                }
+            }
+
+            foreach (var remaining in groupedByCategory)
+            {
+                result.Add(new ConditionGroupDto
+                {
+                    Key = remaining.Key.ToString(),
+                    Label = remaining.Key.ToDisplayLabel(),
+                    Items = remaining.Value
+                });
+            }
+
+            return result;
         }
     }
 }

@@ -3,6 +3,7 @@ namespace agapay_backend.Models
     public class CreateSessionDto
     {
         public int TherapistId { get; set; }
+        public int ContractId { get; set; }
         public DateTime StartAt { get; set; }
         public DateTime EndAt { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using agapay_backend.Data;
+using agapay_backend.Data;
 using agapay_backend.Models;
 using agapay_backend.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -31,15 +31,35 @@ namespace agapay_backend.Services
             _options = options.Value;
         }
 
-        public async Task<List<MatchDto>> GetRecommendationsAsync(int patientId, int top = 5, decimal? patientBudget = null, CancellationToken ct = default)
+        public async Task<List<MatchDto>> GetRecommendationsAsync(
+            int patientId,
+            int top = 5,
+            PatientPreferencesDto? patientPreferences = null,
+            CancellationToken ct = default)
         {
-            // Load patient + preferences
+            // Load patient + preferences for fallback context
             var patient = await _db.Patients
                 .AsNoTracking()
                 .Include(p => p.Preferences)
                 .FirstOrDefaultAsync(p => p.Id == patientId, ct);
 
             if (patient is null) return new List<MatchDto>();
+
+            var effectivePreferences = patientPreferences ?? (patient.Preferences is null
+                ? null
+                : new PatientPreferencesDto
+                {
+                    PreferredDayOfWeek = patient.Preferences.PreferredDayOfWeek,
+                    PreferredStartTime = patient.Preferences.PreferredStartTime,
+                    PreferredEndTime = patient.Preferences.PreferredEndTime,
+                    SessionBudget = patient.Preferences.SessionBudget,
+                    PreferredSpecialization = patient.Preferences.PreferredSpecialization,
+                    DesiredService = patient.Preferences.DesiredService,
+                    PreferredBarangay = patient.Preferences.PreferredBarangay,
+                    PreferredTherapistGender = patient.Preferences.PreferredTherapistGender
+                });
+
+            var effectiveBudget = effectivePreferences?.SessionBudget;
 
             // Build weight vector and normalize
             var w = new Dictionary<string, double>
@@ -49,7 +69,7 @@ namespace agapay_backend.Services
                 ["rating"] = _options.WeightRating,
                 ["budget"] = _options.WeightBudget,
                 ["specialization"] = _options.WeightSpecialization,
-                ["serviceArea"] = _options.WeightServiceArea
+                ["desiredService"] = _options.WeightDesiredService
             };
             var totalW = w.Values.Sum();
             if (totalW <= 0) totalW = 1.0;
@@ -96,33 +116,28 @@ namespace agapay_backend.Services
                 }
 
                 // Budget
-                double budgetScore = _budget.ComputeBudgetScore(t.FeePerSession, patientBudget);
+                double budgetScore = _budget.ComputeBudgetScore(t.FeePerSession, effectiveBudget);
 
-                // Specialization matching (simple heuristic)
-                double specializationScore;
-                var prefText = patient.Preferences?.SpecialRequirements;
-                if (string.IsNullOrWhiteSpace(prefText))
+                // Specialization matching: strictly binary
+                double specializationScore = 0.5; // neutral if no preference provided
+                var specPref = effectivePreferences?.PreferredSpecialization;
+                if (!string.IsNullOrWhiteSpace(specPref))
                 {
-                    specializationScore = 0.5; // neutral if no spec requested
-                }
-                else
-                {
-                    var lowered = prefText.ToLowerInvariant();
-                    var matches = t.Specializations.Any(s => lowered.Contains(s.Name.ToLowerInvariant()))
-                               || t.ConditionsTreated.Any(c => lowered.Contains(c.Name.ToLowerInvariant()));
-                    specializationScore = matches ? 1.0 : 0.0;
+                    specializationScore = t.Specializations.Any(s => string.Equals(s.Name, specPref, StringComparison.OrdinalIgnoreCase)) ? 1.0 : 0.0;
                 }
 
-                // Service area: try to prefer therapists covering patient's location display (if supplied)
-                double serviceAreaScore;
-                if (!string.IsNullOrWhiteSpace(patient.LocationDisplayName))
+                // Service area: prefer barangay preference, then stored patient location
+                double desiredServiceScore = 0.5;
+                var desiredService = effectivePreferences?.DesiredService;
+                if (!string.IsNullOrWhiteSpace(desiredService))
                 {
-                    var patientArea = patient.LocationDisplayName.ToLowerInvariant();
-                    serviceAreaScore = t.ServiceAreas.Any(sa => sa.Name.ToLowerInvariant() == patientArea) ? 1.0 : 0.0;
-                }
-                else
-                {
-                    serviceAreaScore = 0.5; // neutral if no location
+                    bool matchesConditionList = t.ConditionsTreated.Any(c =>
+                    !string.IsNullOrWhiteSpace(c.Name) &&
+                    c.Name.Contains(desiredService, StringComparison.OrdinalIgnoreCase));
+
+                    bool matchesOther = !string.IsNullOrWhiteSpace(t.OtherConditionsTreated) && t.OtherConditionsTreated.Contains(desiredService, StringComparison.OrdinalIgnoreCase);
+
+                    desiredServiceScore = (matchesConditionList || matchesOther) ? 1.0 : 0.0;
                 }
 
                 // Weighted sum
@@ -133,7 +148,7 @@ namespace agapay_backend.Services
                     ["rating"] = ratingScore,
                     ["budget"] = budgetScore,
                     ["specialization"] = specializationScore,
-                    ["serviceArea"] = serviceAreaScore
+                    ["desiredService"] = desiredServiceScore
                 };
 
                 double score = 0.0;

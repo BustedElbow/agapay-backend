@@ -8,9 +8,9 @@ namespace agapay_backend.Models
         public string? RelationshipToUser { get; set; }
 
         public string? Address { get; set; }
+        public string? Barangay { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        public string? LocationDisplayName { get; set; }
 
         public string? Occupation { get; set; }
         public string? ActivityLevel { get; set; }
@@ -22,4 +22,3 @@ namespace agapay_backend.Models
         public bool? IsActive { get; set; }
     }
 }
-

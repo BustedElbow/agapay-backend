@@ -182,6 +182,9 @@ namespace agapay_backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
 
@@ -195,6 +198,8 @@ namespace agapay_backend.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
 
                     b.HasIndex("ReceiverId");
 
@@ -211,16 +216,81 @@ namespace agapay_backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Category")
+                    b.HasKey("Id");
+
+                    b.ToTable("ConditionsTreated");
+                });
+
+            modelBuilder.Entity("agapay_backend.Entities.Contract", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PhysicalTherapistId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ConditionsTreated");
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("PhysicalTherapistId");
+
+                    b.ToTable("Contracts");
+                });
+
+            modelBuilder.Entity("agapay_backend.Entities.Conversation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ParticipantAId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ParticipantBId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParticipantBId");
+
+                    b.HasIndex("ParticipantAId", "ParticipantBId")
+                        .IsUnique();
+
+                    b.ToTable("Conversations");
                 });
 
             modelBuilder.Entity("agapay_backend.Entities.Patient", b =>
@@ -235,6 +305,9 @@ namespace agapay_backend.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Barangay")
                         .HasColumnType("text");
 
                     b.Property<string>("CurrentComplaints")
@@ -260,9 +333,6 @@ namespace agapay_backend.Migrations
                     b.Property<double?>("Latitude")
                         .HasColumnType("double precision");
 
-                    b.Property<string>("LocationDisplayName")
-                        .HasColumnType("text");
-
                     b.Property<double?>("Longitude")
                         .HasColumnType("double precision");
 
@@ -287,7 +357,8 @@ namespace agapay_backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Patients");
                 });
@@ -303,8 +374,14 @@ namespace agapay_backend.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("DesiredService")
+                        .HasColumnType("text");
+
                     b.Property<int>("PatientId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("PreferredBarangay")
+                        .HasColumnType("text");
 
                     b.Property<int?>("PreferredDayOfWeek")
                         .HasColumnType("integer");
@@ -312,14 +389,17 @@ namespace agapay_backend.Migrations
                     b.Property<TimeOnly?>("PreferredEndTime")
                         .HasColumnType("time without time zone");
 
-                    b.Property<int?>("PreferredSessionDurationMinutes")
-                        .HasColumnType("integer");
+                    b.Property<string>("PreferredSpecialization")
+                        .HasColumnType("text");
 
                     b.Property<TimeOnly?>("PreferredStartTime")
                         .HasColumnType("time without time zone");
 
-                    b.Property<string>("SpecialRequirements")
+                    b.Property<string>("PreferredTherapistGender")
                         .HasColumnType("text");
+
+                    b.Property<decimal?>("SessionBudget")
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -356,10 +436,10 @@ namespace agapay_backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ProfilePictureUrl")
+                    b.Property<string>("OtherConditionsTreated")
                         .HasColumnType("text");
 
-                    b.Property<string>("OtherConditionsTreated")
+                    b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("text");
 
                     b.Property<int>("RatingCount")
@@ -542,6 +622,9 @@ namespace agapay_backend.Migrations
                     b.Property<int?>("CancelledBy")
                         .HasColumnType("integer");
 
+                    b.Property<int>("ContractId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -582,6 +665,8 @@ namespace agapay_backend.Migrations
                         .HasColumnType("numeric");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
 
                     b.HasIndex("PatientId");
 
@@ -646,6 +731,10 @@ namespace agapay_backend.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("PreferredRole")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("text");
@@ -784,6 +873,12 @@ namespace agapay_backend.Migrations
 
             modelBuilder.Entity("agapay_backend.Entities.ChatMessage", b =>
                 {
+                    b.HasOne("agapay_backend.Entities.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("agapay_backend.Entities.User", "Receiver")
                         .WithMany()
                         .HasForeignKey("ReceiverId")
@@ -796,9 +891,49 @@ namespace agapay_backend.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Conversation");
+
                     b.Navigation("Receiver");
 
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("agapay_backend.Entities.Contract", b =>
+                {
+                    b.HasOne("agapay_backend.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("agapay_backend.Entities.PhysicalTherapist", "PhysicalTherapist")
+                        .WithMany()
+                        .HasForeignKey("PhysicalTherapistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("PhysicalTherapist");
+                });
+
+            modelBuilder.Entity("agapay_backend.Entities.Conversation", b =>
+                {
+                    b.HasOne("agapay_backend.Entities.User", "ParticipantA")
+                        .WithMany()
+                        .HasForeignKey("ParticipantAId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("agapay_backend.Entities.User", "ParticipantB")
+                        .WithMany()
+                        .HasForeignKey("ParticipantBId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParticipantA");
+
+                    b.Navigation("ParticipantB");
                 });
 
             modelBuilder.Entity("agapay_backend.Entities.Patient", b =>
@@ -873,6 +1008,12 @@ namespace agapay_backend.Migrations
 
             modelBuilder.Entity("agapay_backend.Entities.TherapySession", b =>
                 {
+                    b.HasOne("agapay_backend.Entities.Contract", "Contract")
+                        .WithMany("Sessions")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("agapay_backend.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
@@ -885,6 +1026,8 @@ namespace agapay_backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Contract");
+
                     b.Navigation("Patient");
 
                     b.Navigation("PhysicalTherapist");
@@ -895,6 +1038,16 @@ namespace agapay_backend.Migrations
                     b.HasOne("agapay_backend.Entities.Role", null)
                         .WithMany("Users")
                         .HasForeignKey("RoleId");
+                });
+
+            modelBuilder.Entity("agapay_backend.Entities.Contract", b =>
+                {
+                    b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("agapay_backend.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("agapay_backend.Entities.Patient", b =>

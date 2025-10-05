@@ -27,6 +27,11 @@ namespace agapay_backend.Entities
     public int PhysicalTherapistId { get; set; }
     public PhysicalTherapist? PhysicalTherapist { get; set; }
 
+    // Contract linkage (parent aggregate)
+    [ForeignKey("ContractId")]
+    public int ContractId { get; set; }
+    public Contract? Contract { get; set; }
+
     // Location of the patient for the session (address / display)
     public string? LocationAddress { get; set; }
     public double? Latitude { get; set; }

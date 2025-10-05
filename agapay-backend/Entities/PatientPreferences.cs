@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace agapay_backend.Entities
 {
@@ -15,9 +15,12 @@ namespace agapay_backend.Entities
         public TimeOnly? PreferredStartTime { get; set; }
         public TimeOnly? PreferredEndTime { get; set; }
 
-        // Session preferences
-        public int? PreferredSessionDurationMinutes { get; set; } = 60;
-        public string? SpecialRequirements { get; set; }
+        // Preference filters for recommendation
+        public decimal? SessionBudget { get; set; }
+        public string? PreferredSpecialization { get; set; }
+        public string? DesiredService { get; set; }
+        public string? PreferredBarangay { get; set; }
+        public string? PreferredTherapistGender { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

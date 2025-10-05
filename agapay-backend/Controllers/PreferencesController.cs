@@ -39,8 +39,11 @@ namespace agapay_backend.Controllers
                     PreferredDayOfWeek = (DayOfWeekEnum?)null,
                     PreferredStartTime = (TimeOnly?)null,
                     PreferredEndTime = (TimeOnly?)null,
-                    PreferredSessionDurationMinutes = (int?)null,
-                    SpecialRequirements = (string?)null
+                    SessionBudget = (decimal?)null,
+                    PreferredSpecialization = (string?)null,
+                    DesiredService = (string?)null,
+                    PreferredBarangay = (string?)null,
+                    PreferredTherapistGender = (string?)null
                 });
             }
 
@@ -49,8 +52,11 @@ namespace agapay_backend.Controllers
                 pref.PreferredDayOfWeek,
                 pref.PreferredStartTime,
                 pref.PreferredEndTime,
-                pref.PreferredSessionDurationMinutes,
-                pref.SpecialRequirements
+                pref.SessionBudget,
+                pref.PreferredSpecialization,
+                pref.DesiredService,
+                pref.PreferredBarangay,
+                pref.PreferredTherapistGender
             });
         }
 
@@ -78,8 +84,11 @@ namespace agapay_backend.Controllers
             patient.Preferences.PreferredDayOfWeek = dto.PreferredDayOfWeek;
             patient.Preferences.PreferredStartTime = dto.PreferredStartTime;
             patient.Preferences.PreferredEndTime = dto.PreferredEndTime;
-            patient.Preferences.PreferredSessionDurationMinutes = dto.PreferredSessionDurationMinutes;
-            patient.Preferences.SpecialRequirements = dto.SpecialRequirements;
+            patient.Preferences.SessionBudget = dto.SessionBudget;
+            patient.Preferences.PreferredSpecialization = dto.PreferredSpecialization;
+            patient.Preferences.DesiredService = dto.DesiredService;
+            patient.Preferences.PreferredBarangay = dto.PreferredBarangay;
+            patient.Preferences.PreferredTherapistGender = dto.PreferredTherapistGender;
             patient.Preferences.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
@@ -87,4 +96,3 @@ namespace agapay_backend.Controllers
         }
     }
 }
-

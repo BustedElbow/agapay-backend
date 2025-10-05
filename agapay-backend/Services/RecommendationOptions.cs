@@ -8,6 +8,9 @@
         public double WeightRating { get; set; } = 0.17;
         public double WeightBudget { get; set; } = 0.17;
         public double WeightSpecialization { get; set; } = 0.17;
+        public double WeightDesiredService { get; set; } = 0.10;
+
+        // Deprecated: This will be eventually thrown out
         public double WeightServiceArea { get; set; } = 0.10;
 
         public int DefaultTop { get; set; } = 5;

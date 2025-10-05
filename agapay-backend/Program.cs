@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("https://localhost:5173", "http://localhost:5173")
+        policy.WithOrigins("https://localhost:5173", "http://localhost:5173", "http://localhost:8081", "http://127.0.0.1:8081", "http://localhost:19006", "http://127.0.0.1:19006", "http://192.168.1.10:19006")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -75,7 +75,7 @@ builder.Services.AddAuthentication(options =>
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
             if (!string.IsNullOrEmpty(accessToken) &&
-                (path.StartsWithSegments("/chathub") || path.StartsWithSegments("/locationhub")))
+                (path.StartsWithSegments("/hubs/chat") || path.StartsWithSegments("/locationhub")))
             {
                 context.Token = accessToken;
             }
@@ -128,7 +128,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<ChatHub>("/chathub");
+app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<LocationHub>("/locationhub");
 
 app.Run();
+

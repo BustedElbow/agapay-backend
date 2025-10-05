@@ -36,6 +36,7 @@ namespace agapay_backend.Controllers
                 .Select(t => new TherapistCardDto
                 {
                     Id = t.Id,
+                    UserId = t.UserId,
                     Name = t.User != null ? (t.User.FirstName + " " + t.User.LastName) : t.LicenseNumber,
                     ProfilePictureUrl = t.ProfilePictureUrl, // will be converted to usable URL below
                     YearsOfExperience = t.YearsOfExperience,
@@ -79,6 +80,7 @@ namespace agapay_backend.Controllers
             var dto = new TherapistDetailDto
             {
                 Id = t.Id,
+                    UserId = t.UserId,
                 Name = t.User != null ? ($"{t.User.FirstName} {t.User.LastName}") : t.LicenseNumber,
                 ProfilePictureUrl = t.ProfilePictureUrl, // will convert below
                 WorkPhoneNumber = t.WorkPhoneNumber,
@@ -124,7 +126,8 @@ namespace agapay_backend.Controllers
 
             return Ok(new
             {
-                id = t.Id,
+                Id = t.Id,
+                    UserId = t.UserId,
                 name = t.User != null ? ($"{t.User.FirstName} {t.User.LastName}") : t.LicenseNumber,
                 profilePictureUrl = profileUrl,
                 yearsOfExperience = t.YearsOfExperience,

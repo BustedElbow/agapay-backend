@@ -16,12 +16,12 @@ namespace agapay_backend.Entities
         public required string RelationshipToUser { get; set; }
 
         public string? Address { get; set; }
+        public string? Barangay { get; set; }
         public bool IsActive { get; set; }
 
         // Location fields for map functionality
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        public string? LocationDisplayName { get; set; }
 
         // Fields from Patient Onboarding
         public string? Occupation { get; set; }
